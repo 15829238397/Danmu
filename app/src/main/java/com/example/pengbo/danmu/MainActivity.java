@@ -1,13 +1,17 @@
 package com.example.pengbo.danmu;
 
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.VideoView;
 import java.io.File;
@@ -26,6 +30,13 @@ public class MainActivity extends AppCompatActivity {
 
     private VideoView vvViodeView ;
     private Button butPlay ;
+
+    private View decorView ;
+
+    private LinearLayout operationlayout ;
+    private Button butSend ;
+    private EditText editText ;
+
     private MediaController controller ;
     private DanmakuView danmakuView ;
     private DanmakuContext danmakuContext ;
@@ -56,8 +67,30 @@ public class MainActivity extends AppCompatActivity {
         butPlay = this.findViewById(R.id.but_play) ;
         danmakuView = this.findViewById(R.id.danmaku_view) ;
 
+        operationlayout = findViewById(R.id.operation_layout);
+        butSend = findViewById(R.id.but_send) ;
+        editText = findViewById(R.id.edit_text) ;
+
+        decorView = getWindow().getDecorView() ;
+
         //全屏显示
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        if(hasFocus && Build.VERSION.SDK_INT >= 19){
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
 
     }
 
@@ -170,6 +203,39 @@ public class MainActivity extends AppCompatActivity {
 
                 //隐藏播放按钮
                 butPlay.setVisibility(View.GONE);
+            }
+        });
+
+        //点击放映屏幕，进行弹幕发送界面弹出返回
+        danmakuView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (operationlayout.getVisibility() == View.GONE){
+                    operationlayout.setVisibility(View.VISIBLE);
+                }else{
+                    operationlayout.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        //点击发送按钮进行弹幕发送
+        butSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String content = editText.getText().toString() ;
+                if(!TextUtils.isEmpty(content)){
+                    addDanmaku(content , true);
+                    editText.setText("");
+                }
+            }
+        });
+
+        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int i) {
+                if(i == View.SYSTEM_UI_FLAG_VISIBLE){
+                    onWindowFocusChanged(true);
+                }
             }
         });
 
